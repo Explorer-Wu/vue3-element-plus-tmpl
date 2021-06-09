@@ -4,6 +4,7 @@
     "module": "esnext",
     "strict": true,
     "jsx": "preserve",
+    "jsxFactory": "h",
     "importHelpers": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
@@ -12,15 +13,27 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "noImplicitAny": false,
     "types": [
+      "node",
       "webpack-env",
       "jest"
     ],
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "utils/*": [
+        "src/utils/*"
+      ],
+      "static/*": [
+        "static/*"
       ]
     },
+    "typeRoots": [
+      "node_modules/@types",
+      "types"
+    ],
     "lib": [
       "esnext",
       "dom",
