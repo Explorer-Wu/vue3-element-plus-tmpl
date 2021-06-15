@@ -184,7 +184,8 @@
  *  3.放开babel.config 注释
  */
  import ElementPlus from 'element-plus'
- import 'element-plus/packages/theme-chalk/src/base.scss'; // 引入官方样式入口文件
+ import 'element-plus/lib/theme-chalk/index.css'; // 全局引入样式
+//  import 'element-plus/packages/theme-chalk/src/base.scss'; // 按需引入样式
  import "@/assets/styles/main/base.scss";
  import "@/assets/styles/components/general.scss";
 //  import { useStore } from '@/store'

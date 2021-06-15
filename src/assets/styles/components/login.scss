@@ -2,98 +2,90 @@
 @import "../main/function";
 
 .login-main {
-  width:280px;
-  height:380px;
-  overflow: hidden;
-  margin: auto;
-  padding: 0;
-  color: #A6B2BB;
-  background-color: rgb(81, 89, 110);
+  background: #081839;
+  display: -webkit-box;
+  /* display: -webkit-flex; display: -moz-flex; display: -ms-flex; */
+  display: -ms-flexbox;
+  display: flex;
+  /* 项目在主轴上的对齐方式 */
+  justify-content: center;
+  /* 项目在交叉轴上如何对齐 */
+  align-items: center;
+  /* 多根轴线的对齐方式 */
+  align-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* width: 100%;
+  height: 100%; */
+  z-index: 0;
+}
+.login-main .foot {
+  position: absolute;
+  text-align: 'center';
+  bottom: 0;
+  padding: 10px;
+  /* opacity: 0;  */
+  color: #fff;
+  font: normal 10px/36px "Microsoft YaHei"
+}
+.login-wrap {
+  width:300px;
+  height:360px;
+  padding: 10px 25px;
+  border: 1px solid #9aaaca;
+  border-radius: 6px;
+  color: #515158;
   z-index: 2;
   dt {
     height: 50px;
     color: #fff;
     padding: 10px 15px;
     background-color: #133f80;
-    // 可拖拽区域
-    -webkit-app-region: drag;
-    // 在可区域中禁用文本选择
-    -webkit-user-select: none;
     h3 {
       font: bold 18px/30px $font-stack;
       color: #fff;
-    }
-    .close {
-      -webkit-app-region: no-drag; // 可拖拽区域排除
-      float: right;
-      width: 20px;
-      height: 20px;
-      margin: 5px 10px;
-      cursor: pointer;
-      position: relative;
-      z-index: 0;
-      &::before, &::after {
-        content: '';
-        width: 22px;
-        height: 1px;
-        background: transparent;
-        position: absolute;
-        top: 10px;
-        left: 2px;
-        z-index: 100;
-        background-color: #fff;
-      }
-      &::before{
-        -webkit-transform: rotate(45deg); /* Safari & Chrome */
-            -moz-transform: rotate(45deg); /* Firefox */
-            -o-transform: rotate(45deg); /* Opera */
-      }
-      &::after{
-        -webkit-transform: rotate(-45deg); /* Safari & Chrome */
-            -moz-transform: rotate(-45deg); /* Firefox */
-            -o-transform: rotate(-45deg); /* Opera */
-      }
     }
   }
   dd {
     padding: 20px;
     text-align: center;
     h3 {
-      font: bold 18px/20px $font-stack;
-      color: #333;
+      font: bold 18px/30px $font-stack;
+      color: #fff;
+      text-align: center;
     }
     p{
       line-height: 18px;
       margin: 0 auto;
       font: bold 14px/18px "Microsoft YaHei";
+      text-align: center;
     }
     .login-form {
-      position: relative;
+      // position: relative;
       z-index: 0;
       width: 100%;
-      height: calc(100vh - 100px);
-      .ivu-input-group-prepend, .ivu-input {
-        border-width: 0 0 1px 0;
-        border-radius: 0;
-        background-color: transparent;
-      }
+      // height: calc(100vh - 100px);
+      max-width: 300px;
       label, span {
         color: #ccc;
       }
       .login-sub {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        z-index: 100;
+        // position: absolute;
+        // bottom: 0;
+        // left: 0;
+        // z-index: 100;
         width: 100%;
         height: 80px;
-        .checkbox-left, .checkbox-right {
+        .checkbox-left, .login-form-forgot {
           margin-bottom: 8px;
         }
         .checkbox-left{
           text-align: left;
         }
-        .checkbox-right {
+        .login-form-forgot {
           text-align: right;
         }
         button {

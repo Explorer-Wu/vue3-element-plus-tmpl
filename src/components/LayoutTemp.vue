@@ -55,7 +55,6 @@ export default defineComponent({
 
     const methods = {
       collapsedSider() {
-        debugger
         state.isCollapsed = !state.isCollapsed
         state.collapsedWd = state.isCollapsed ? '64px' : '230px'
       },

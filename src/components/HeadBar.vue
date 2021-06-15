@@ -8,7 +8,7 @@
         <!-- <i class="el-icon-minus win-icon" @click="minimizeWin"></i> -->
         <!-- <i class="el-icon-copy-document win-icon" @click="maximizeWin"></i> -->
         <!-- <i class="el-icon-close win-icon" @click="closeWin"></i> -->
-        <el-dropdown>
+        <el-dropdown style="line-height: 50px">
           <i class="el-icon-setting" style="margin-right: 15px"></i>
           <template #dropdown>
             <el-dropdown-menu>
@@ -51,6 +51,7 @@ export default defineComponent({
   }
 })
 </script>
+
 <style lang="scss" scoped>
   .head-bar {
     height: 50px;

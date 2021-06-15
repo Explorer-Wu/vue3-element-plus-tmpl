@@ -1,4 +1,5 @@
 import type { App, createApp } from 'vue';
+import { NavigationGuardNext } from "vue-router";
 import _ from 'lodash';
 import dayjs from 'dayjs';
 import VuexRouterSync from 'vuex-router-sync';
@@ -36,7 +37,7 @@ const GeneralPlugin = {
  * @description 加载所有 Plugins
  * @param  {ReturnType<typeofcreateApp>} app 整个应用的实例
  */
- export function LoadAllPlugins(app: ReturnType<typeof createApp>, store: any, router: any) { //(app: any, store: any, router: any)
+export function LoadAllPlugins(app: ReturnType<typeof createApp>, store: any, router: any) { // (app: any, store: any, router: any)
   app.use(GeneralPlugin);
   
   const files = require.context('./', true, /\.ts$/)
@@ -45,6 +46,27 @@ const GeneralPlugin = {
       if (key !== './index.ts' && key !== './eventbus.ts') files(key).default(app)
     }
   })
+
+  router.beforeEach((to, from, next: NavigationGuardNext) => {
+    const title = to.meta && to.meta.title;
+    if (title) {
+      // document.title = title;
+    }
+  
+    // 判断该路由是否需要登录权限
+    // console.log("router-auth:", store.state.auth, localStorage.getItem('access_token'))
+    if (to.matched.some(record => record.meta.auth) && !store.state.auth.authenticated) {
+      next({
+        name: 'Login',
+        query: { redirect: to.fullPath } // 将跳转的路由path作为参数，登录成功后跳转到该路由
+      })
+    }
+    next();
+  });
+  // 全局后置钩子，然而和守卫不同的是，这些钩子不会接受 next 函数也不会改变导航本身
+  // router.afterEach((to, from) => {
+  //   console.log("afterEach:", to)
+  // })
 
   VuexRouterSync.sync(store, router);
   app.use(store).use(router).mount("#app");

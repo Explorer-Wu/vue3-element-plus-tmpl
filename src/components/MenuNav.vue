@@ -11,7 +11,9 @@
     unique-opened="true"
     background-color="#0a1e50"
     text-color="#fff"
-    active-text-color="#ffd04b"
+    active-text-color="#ffd06b"
+    collapse-transition="true"
+    router="true"
   >
     <div class="head-logo">
       <img src="../assets/images/logo.png" alt="logo" />
@@ -159,8 +161,8 @@
     &:not(.el-menu--collapse) {
       width: 230px;
     }
-    > li {
-      line-height: 36px;
-    }
+    // > li {
+    //   line-height: 36px;
+    // }
   }
 </style>
