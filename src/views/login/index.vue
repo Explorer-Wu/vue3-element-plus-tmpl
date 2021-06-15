@@ -6,31 +6,35 @@
         <h3>登 录</h3>
       </dt>
       <dd>
-        <el-form
-          ref="refFormLogin"
-          class="login-form"
-          :model="formLogin"
-          :rules="ruleLogin"
-          status-icon
-        >
+        <el-form ref="refFormLogin" class="login-form" :model="formLogin" :rules="ruleLogin" status-icon>
           <el-form-item prop="username">
-            <el-input
-              v-model="formLogin.username"
-              :on-blur="searchSession"
-              placeholder="用户名"
-              prefix-icon="el-icon-user"
-            >
-            </el-input>
+            <!-- :on-blur="searchSession" -->
+            <el-input type="text" v-model="formLogin.username" placeholder="用户名" prefix-icon="el-icon-user"></el-input>
           </el-form-item>
           <el-form-item prop="password">
-            <el-input
-              type="password"
-              v-model="formLogin.password"
-              placeholder="密码"
-              prefix-icon="el-icon-lock"
-              autocomplete="off"
-            >
-            </el-input>
+            <el-input type="password" v-model="formLogin.password" placeholder="密码" prefix-icon="el-icon-lock" autocomplete="off"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-col :span="15">
+              <el-form-item prop="photoCode">
+                <!-- @keyup.enter="login" -->
+                <el-input
+                  type="text"
+                  v-model="formLogin.photoCode"
+                  placeholder="验证码"
+                  style="width: 100%"
+                  clearable
+                >
+                </el-input>
+              </el-form-item>
+            </el-col>
+            <el-col class="line" :span="1">&nbsp;</el-col>
+            <el-col :span="8">
+              <el-form-item>
+                <img class="code-img" :src="formLogin.src" @click="refreshCodeImg" clearable />
+              </el-form-item>
+            </el-col>
           </el-form-item>
 
           <div class="login-sub">
@@ -76,8 +80,9 @@
   } from 'vue';
   import { useStore } from 'vuex';
   import { useRouter } from 'vue-router';
-  // import { envConfig } from '@/envconfig';
-  import md5 from 'md5';
+  import { JSEncrypt } from 'jsencrypt';
+  // import * as JSEncrypt from 'jsencrypt';
+  // import md5 from 'md5';
   import { encode, decode } from 'js-base64';
   import { validPattern } from '@/utils/pattern.js';
   // import CookieStorage from "@/utils/cookiestorage";
@@ -86,16 +91,27 @@
   // import ModalModifyPasswd from "@/components/Modals/ModalModifyPasswd"
   // import ModalLogout from "@/components/Modals/ModalLogout"
   // import cookiestorage from '@/utils/cookiestorage'
-  interface ExState {
-    remember: boolean;
-    ruleLogin: object;
-    loginTime: any;
+  interface RuleLogin {
+    username: Array<any>,
+    password: Array<any>,
+    photoCode: Array<any>,
+  }
+
+  interface FormLogin {
+    username: string;
+    password: any;
+    photoCode: string;
+    src: string;
+    timeStamp: number;
+    autos: Array<string>;
   }
 
   interface FormState {
-    username: string;
-    password: string;
-    autos: Array<string>;
+    formLogin: FormLogin;
+    remember: boolean;
+    ruleLogin: RuleLogin;
+    loginTime: any;
+    publicKey: any;
   }
 
   export default defineComponent({
@@ -103,17 +119,25 @@
     setup(props: any, context: any) {
       const { proxy } = getCurrentInstance() as any;
       const refFormLogin = ref<string | number>('login');
-      const formState: UnwrapRef<FormState> = reactive({
-        username: '',
-        password: '',
-        autos: ['remember']
-      });
-
-      const validCode = val => {
-        return validPattern.validVcode.test(val);
+      const validCode = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('验证码不能为空！'));
+        } else {
+          if(!validPattern.validVcode.test(value)) {
+            callback(new Error('验证码输入不合法！'));
+          }
+          callback();
+        }
       };
-
-      const exState: ExState = reactive({
+      const formState: UnwrapRef<FormState> = reactive({
+        formLogin: {
+          username: '',
+          password: '',
+          photoCode: '',
+          src: '',
+          timeStamp: 0,
+          autos: ['remember']
+        },
         remember: false,
         ruleLogin: {
           username: [
@@ -124,25 +148,20 @@
             }
           ],
           password: [
-            {
-              required: true,
-              message: '密码不能为空！',
-              trigger: 'blur'
-            },
-            {
-              type: 'string',
-              min: 6,
-              message: '密码输入不合法！',
-              trigger: 'blur'
-            }
+            { required: true, message: '密码不能为空！', trigger: 'blur' },
+            { min: 6, max: 18, message: '密码输入不合法！', trigger: 'blur' }
           ],
-          vcode: [{ required: true, validator: validCode, message: '验证码输入不合法！', triger: 'blur' }]
+          photoCode: [
+            { required: true, validator: validCode, triger: 'blur' }
+          ]
         },
+        publicKey: '',
         loginTime: null
       });
+
       const $store = useStore();
       const authenticated = computed(() => $store.state.auth.authenticated);
-      watch([authenticated, exState.remember], ([auth, remember], [prevAuth, prevRemember]) => {
+      watch([authenticated, formState.remember], ([auth, remember], [prevAuth, prevRemember]) => {
         if (auth === true) {
           proxy.$router.push('/views/dealalarm');
         }
@@ -160,32 +179,33 @@
           });
         },
         subLogin() {
-          const formLogin_md5 = {
-            ...formState
-            // password: md5(formState.password)
+          const formLogin_Rsa = {
+            ...formState.formLogin
           };
-          const encode_pwd = encode(formState.password);
+          // const encode_pwd = encode(formState.formLogin.password);
+          formLogin_Rsa.password = this.passwordEncryption(formState.formLogin.password + ',' + new Date().getTime());
           let account = localStorage.getItem('user_name');
-          if (exState.remember) {
+          if (formState.remember) {
             //如果记住密码，存cookie
-            localStorage.setItem('user_name', formState.username);
-            localStorage.setItem('user_pwd', encode_pwd);
-            localStorage.setItem(formState.username, encode_pwd);
+            localStorage.setItem('user_name', formState.formLogin.username);
+            localStorage.setItem('user_pwd', formLogin_Rsa.password);
+            localStorage.setItem(formState.formLogin.username, formLogin_Rsa.password);
           } else if (account) {
             localStorage.removeItem(account);
             localStorage.removeItem('user_name'); //删除用户名密码
             localStorage.removeItem('user_pwd');
           }
 
-          methods.reqLogin(formLogin_md5);
+          methods.reqLogin(formLogin_Rsa);
 
           nextTick(() => {
             (refFormLogin.value as any).resetFields();
           });
         },
-        async reqLogin(formDataMd5: any) {
+        async reqLogin(formData: any) {
+          const { username, password, photoCode } = formData;
           try {
-            const loginRes = await proxy.$Api.login(formDataMd5.username, formDataMd5.password);
+            const loginRes = await proxy.$Api.login({username, password, captcha: photoCode});
             console.log('loginRes:', loginRes);
             localStorage.setItem('user_info', JSON.stringify(loginRes.data.userInfo));
             console.log('log-authenticated0:', authenticated);
@@ -196,16 +216,46 @@
             // throw new Error(await error.msg);
           }
         },
-        searchSession() {
-          if (exState.remember && localStorage.getItem(formState.username)) {
-            formState.password = decode(<any>localStorage.getItem(formState.username));
-          } else {
-            if (localStorage.getItem(formState.username)) {
-              localStorage.removeItem(formState.username);
+        //获取图片校验码
+        refreshImgCode() {
+          formState.formLogin.timeStamp = new Date().getTime();
+          let params = {
+            data: {
+              timeStamp: formState.formLogin.timeStamp
             }
-            formState.password = '';
-          }
+          };
+          proxy.$Api.getValidCode(params).then(res => {
+            let img = btoa(
+              new Uint8Array(res.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
+            );
+            formState.formLogin.src = 'data:image/png;base64,' + img;
+          });
+        },
+        //密码加密方法
+        passwordEncryption(userpassword) {
+          this.getRsaKey();
+          // console.log(formState.publicKey + ' ********后台获取公钥********** ');
+          const encryptor = new JSEncrypt(); // 新建JSEncrypt对象
+          encryptor.setPublicKey(formState.publicKey); // 设置公钥
+          let passwordEncryp = encryptor.encrypt(userpassword); // 对密码进行加密
+          console.log(passwordEncryp + ' ****************** ');
+          return passwordEncryp;
+        },
+        // 从后台获取公钥
+        async getRsaKey() {
+          const { data } = await proxy.$Api.getRsaKey();
+          formState.publicKey = data;
         }
+        // searchSession() {
+        //   if (formState.remember && localStorage.getItem(formState.formLogin.username)) {
+        //     formState.formLogin.password = decode(<any>localStorage.getItem(formState.formLogin.username));
+        //   } else {
+        //     if (localStorage.getItem(formState.formLogin.username)) {
+        //       localStorage.removeItem(formState.formLogin.username);
+        //     }
+        //     formState.formLogin.password = '';
+        //   }
+        // }
       };
 
       onMounted(() => {
@@ -216,19 +266,18 @@
 
         if (account && password) {
           // 如果存在赋值给表单，并且将记住密码勾选
-          formState.username = account;
-          formState.password = decode(password);
-          exState.remember = true;
+          formState.formLogin.username = account;
+          formState.formLogin.password = decode(password);
+          formState.remember = true;
         }
       });
 
       onUnmounted(() => {
-        clearTimeout(exState.loginTime);
+        clearTimeout(formState.loginTime);
       });
 
       return {
-        ...toRefs(exState),
-        formLogin: { ...formState },
+        ...toRefs(formState),
         ...methods,
         authenticated,
         refFormLogin

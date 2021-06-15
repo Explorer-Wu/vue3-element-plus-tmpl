@@ -28,7 +28,6 @@
 <script lang="ts">
 import { defineComponent, onMounted, onUnmounted, reactive, toRefs, toRaw, ref, UnwrapRef, getCurrentInstance } from 'vue';
 // import { useRouter } from "vue-router";
-// import { envConfig } from '@/envconfig';
 import HeadBar from "./HeadBar.vue";
 import MenuNav from "./MenuNav.vue";
 

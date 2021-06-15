@@ -32,7 +32,7 @@
   font: normal 10px/36px "Microsoft YaHei"
 }
 .login-wrap {
-  width:300px;
+  width:320px;
   height:360px;
   padding: 10px 25px;
   border: 1px solid #9aaaca;
@@ -43,7 +43,7 @@
     height: 50px;
     color: #fff;
     padding: 10px 15px;
-    background-color: #133f80;
+    border-bottom: 1px solid #5b759c;
     h3 {
       font: bold 18px/30px $font-stack;
       color: #fff;
@@ -71,6 +71,11 @@
       max-width: 300px;
       label, span {
         color: #ccc;
+      }
+      img.code-img {
+        width: 80px; /*设置图片显示的宽*/
+        height: 32px; /*图片显示的高*/
+        background: #eee;
       }
       .login-sub {
         // position: absolute;

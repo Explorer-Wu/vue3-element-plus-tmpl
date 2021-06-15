@@ -4,12 +4,21 @@ const requestLis = [{
   name: 'login',
   url: '/auth/login',
   method: 'post',
-  baseurl: process.env.VUE_APP_AuthURL
+  // baseurl: process.env.VUE_APP_AuthURL
 }, {
   name: 'logout',
   url: '/auth/logout',
   method: 'post',
-  baseurl: process.env.VUE_APP_AuthURL
+  // baseurl: process.env.VUE_APP_AuthURL
+}, {
+  name: 'getValidCode', // 获取图片验证码
+  url: 'auth/photocode',
+  method: 'post',
+  responseType: "arraybuffer",
+}, {
+  name: 'getRsaKey', // 获取公钥
+  url: 'auth/rsaKey',
+  method: 'get',
 }];
 
 interface ApiConfig {

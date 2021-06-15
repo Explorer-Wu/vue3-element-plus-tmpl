@@ -6,6 +6,14 @@ declare module '*.vue' {
   export default component
 }
 
+declare module 'jsencrypt' {
+  export class JSEncrypt {
+    constructor();
+    setPublicKey(pk: string): void;
+    encrypt(key: string): string;
+  }
+}
+
 declare module "*.scss";
 
 declare global { // 全局变量设置

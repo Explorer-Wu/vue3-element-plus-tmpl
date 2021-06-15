@@ -20,7 +20,7 @@ const AxiosInstance = Axios.create({
   timeout: 10000,
   headers: {
     'cache-control': 'no-cache',
-    'x-channel': 'PC'
+    // 'x-channel': 'PC'
   }
 });
 
