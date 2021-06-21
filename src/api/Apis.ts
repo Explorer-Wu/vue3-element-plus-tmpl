@@ -4,7 +4,10 @@ const requestLis = [{
   name: 'login',
   url: '/auth/login',
   method: 'post',
-  // baseurl: process.env.VUE_APP_AuthURL
+  isformdata: true,
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded'
+  }
 }, {
   name: 'logout',
   url: '/auth/logout',
@@ -19,36 +22,47 @@ const requestLis = [{
   name: 'getRsaKey', // 获取公钥
   url: 'auth/rsaKey',
   method: 'get',
+}, {
+  name: 'getArticleList', // 获取新闻列表
+  url: '/api/articles',
+  method: 'get',
 }];
 
 interface ApiConfig {
   [propName: string]: Function | any;
 }
 
+interface ReqOpts {
+  paramId?: string;
+  params?: any;
+  data?: any;
+}
+
 const Api: ApiConfig = {};
 requestLis.forEach((req: any) => {
-  Api[req.name] = (data: object, urlqs: boolean) => { // , headers: object  process.env.VUE_APP_BaseURL
-    // const requrl = process.env.VUE_APP_BaseURL + req.url;
+  const {name, headers, url, method, isformdata } = req;
+
+  Api[name] = (opts: ReqOpts) => { // , headers: object  process.env.VUE_APP_BaseURL
+    // const requrl = process.env.VUE_APP_BaseURL + url;
     let queryData = {}
-    console.log('requrl:', process.env);
-    // headers: (headers as any) || {},
-    // fetchLock: false
-    if (urlqs) {
+    console.log('opts:', opts);
+    if (opts?.params) {
       queryData = {
         params: {
-          ...data
+          ...opts.params
         }
       }
-    } else {
+    } else if(opts?.data){
       // delete删除请求(参数可以放在url上, 也可以和post一样放在请求体中)
-      queryData = { data }
+      queryData = { data: opts.data }
     }
     
     return Fetch({
-      method: req.method || 'get',
-      url: req.url,
+      method: method || 'get',
+      url: (opts?.paramId) ? url + opts.paramId : url,
       ...queryData,
-      baseURL: req.baseurl,
+      isformdata
+      // baseURL: baseurl,
     })
   };
 });

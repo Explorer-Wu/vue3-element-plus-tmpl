@@ -171,7 +171,7 @@
         handleSubmit() {
           (refFormLogin.value as any).validate(async (valid: boolean) => {
             if (valid) {
-              methods.subLogin();
+              this.subLogin();
             } else {
               context.$Message.error('登录验证失败!');
               (refFormLogin.value as any).resetFields();
