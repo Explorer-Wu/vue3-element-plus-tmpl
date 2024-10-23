@@ -57,6 +57,7 @@ module.exports = {
         '@public': resolve('public'),
         '@env': resolve('env'),
       },
+      extensions: ['.ts', '.tsx']
     },
   },
 };

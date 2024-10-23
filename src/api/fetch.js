@@ -1,7 +1,8 @@
 import Axios from 'axios';
+import qs from 'qs';
+import $store from '@/store/index';
 import CookieStorage from '@/utils/cookiestorage';
 // import { convertRes2Blob } from '@/utils/index'
-import qs from 'qs';
 import { envConfig } from '@/envconfig';
 
 const env = process.env.NODE_ENV;
@@ -17,12 +18,50 @@ const AxiosInstance = Axios.create({
   // 是否跨域携带cookie
   withCredentials: true,
   // 请求超时
-  timeout: 10000,
+  timeout: 12000,
   headers: {
     'cache-control': 'no-cache',
     // 'x-channel': 'PC'
   }
 });
+
+const StreamPost = config => {
+  const url = config.url;
+  const data = JSON.parse(config.data);
+  const form = document.createElement('form');
+  form.action = url;
+  form.method = 'post';
+  form.style.display = 'none';
+  Object.keys(data).forEach(key => {
+    const input = document.createElement('input');
+    input.name = key;
+    input.value = data[key];
+    form.appendChild(input);
+  });
+  const button = document.createElement('input');
+  button.type = 'submit';
+  form.appendChild(button);
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+};
+
+const StreamGet = config => {
+  const params = [];
+  for (const item in config.params) {
+    params.push(`${item}=${config.params[item]}`);
+  }
+  const url = params.length
+    ? `${config.baseURL + config.url}?${params.join('&')}`
+    : `${config.baseURL + config.url}`;
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = url;
+  iframe.onload = function () {
+    document.body.removeChild(iframe);
+  };
+  document.body.appendChild(iframe);
+};
 
 const ApiCache = {
   cachMap: new Map() /** 缓存列表 */,
@@ -72,16 +111,16 @@ const ApiCache = {
     }
   },
   /** 新增缓存 */
-  addCach(config) {
-    // , cancel
+  addCach(config, cancel) {
     const key = this.createKey(config),
       expirationTime = config.headers.expirationTime || 0;
     if (expirationTime) {
       this.cachMap.set(key, {
         expirationTime,
         deadline: new Date().getTime() + expirationTime,
-        data: config.data || ''
-      }); // , cancel
+        data: '', 
+        cancel
+      });
     }
   },
   /** 更新缓存 */
@@ -102,44 +141,6 @@ const ApiCache = {
   }
 };
 
-const StreamPost = config => {
-  const url = config.url;
-  const data = JSON.parse(config.data);
-  const form = document.createElement('form');
-  form.action = url;
-  form.method = 'post';
-  form.style.display = 'none';
-  Object.keys(data).forEach(key => {
-    const input = document.createElement('input');
-    input.name = key;
-    input.value = data[key];
-    form.appendChild(input);
-  });
-  const button = document.createElement('input');
-  button.type = 'submit';
-  form.appendChild(button);
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
-};
-
-const StreamGet = config => {
-  const params = [];
-  for (const item in config.params) {
-    params.push(`${item}=${config.params[item]}`);
-  }
-  const url = params.length
-    ? `${config.baseURL + config.url}?${params.join('&')}`
-    : `${config.baseURL + config.url}`;
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.src = url;
-  iframe.onload = function () {
-    document.body.removeChild(iframe);
-  };
-  document.body.appendChild(iframe);
-};
-
 // 设置请求拦截器
 AxiosInstance.interceptors.request.use(
   config => {
@@ -151,8 +152,10 @@ AxiosInstance.interceptors.request.use(
       }
     }
 
-    // if(config.baseURL) {
-    // }
+    if(config.formdata && config.data) {
+      // 转formData格式提交
+      config.data = qs.stringify(config.data);
+    }
 
     // 请求锁
     fetchLock = config.fetchLock ? config.fetchLock : true;
@@ -162,12 +165,12 @@ AxiosInstance.interceptors.request.use(
         ApiCache.deleteTask(config, true, c);
         /** 新增任务 */
         ApiCache.addTask(config, c);
+        /** 新增缓存 */
+        ApiCache.addCach(config, c);
       });
+      config.headers.expirationTime = void 0;
     }
-    /** 新增缓存 */
-    ApiCache.addCach(config);
-
-    config.headers.expirationTime = void 0;
+    
     // 判断是否需要token，如果存在的话，则每个http header都加上token
     if (config.usetoken) {
       // CookieStorage.getTokenCookie('access_token')
@@ -192,8 +195,9 @@ AxiosInstance.interceptors.response.use(
     // responseLock(response.config);
     if (fetchLock) {
       ApiCache.deleteTask(response.config, false);
+      ApiCache.updateCach(response);
     }
-    ApiCache.updateCach(response);
+    
     // 处理字节流
     if (response.headers && response.headers['content-type'] === 'application/octet-stream') {
       const config = response.config;
@@ -217,6 +221,13 @@ AxiosInstance.interceptors.response.use(
   },
   error => {
     let errMsg;
+    if (Axios.isCancel(error)) {
+      console.log("取消上一个请求！")
+    } else {
+      // 中断Promise链接
+      return new Promise(() => null);
+    }
+    
     if (error.response) {
       // const ErrRes = error.response 
       const { status, data } = error.response;
@@ -235,22 +246,29 @@ AxiosInstance.interceptors.response.use(
           // }
           error.response.msg = errMsg;
           // alert('没有权限访问', errMsg)
-          setTimeout(() => {
-            if (process.env.NODE_ENV === 'development') {
-              // console.log("BASE_URL:", process.env.BASE_URL)
-              window.location.href = `${process.env.BASE_URL}/login`;
-            } else {
-              window.location.href = `${data.loginurl}/login`;
-            }
-          }, 3000);
+          // setTimeout(() => {
+          //   if (process.env.NODE_ENV === 'development') {
+          //     // console.log("BASE_URL:", process.env.BASE_URL)
+          //     window.location.href = `${process.env.BASE_URL}/login`;
+          //   } else {
+          //     window.location.href = `${data.loginurl}/login`;
+          //   }
+          // }, 3000);
+          if($store.state.auth.authenticated) {
+            CookieStorage.clearCookie('access_token');
+            $store.display('auth/check'); 
+          }
           break;
         case 403:
-          localStorage.removeItem('access_token');
           errMsg = '该服务资源无权限访问！';
           // alert("403-errMsg:" + errMsg)
           error.response.msg = errMsg;
+          if($store.state.auth.authenticated) {
+            $store.display('auth/update'); 
+          }
           break;
         default:
+          error.msg = "服务请求失败！"
           break;
       }
     }

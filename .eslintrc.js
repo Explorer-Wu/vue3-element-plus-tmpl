@@ -14,7 +14,11 @@ module.exports = {
     ecmaVersion: 2020,
   },
   rules: {
+    "no-useless-escape": 0,
+    "@typescript-eslint/ban-types": 0,
     "@typescript-eslint/no-var-requires": 0,
+    "@typescript-eslint/explicit-function-return-type": 0,
+    "@typescript-eslint/explicit-module-boundary-types": 0,
     "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
     "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
   },

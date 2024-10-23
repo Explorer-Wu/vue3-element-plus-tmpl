@@ -28,7 +28,7 @@ pipeline {
                     DOCKERFILE_NAME="Dockerfile"
 
                     // 【生产环境】变量
-                    if( "${BRANCH_NAME}"== "master"){
+                    if("${BRANCH_NAME}"== "master"){
                         env.INGRESS_HOST='admin-tmpl.vue3test.com'
                         env.INGRESS_TLS_SECRET="vue3test-tls-secret"
                         env.REPLICAS="2"

@@ -21,10 +21,12 @@
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
     "qs": "^6.10.1",
+    "reflect-metadata": "^0.1.13",
     "register-service-worker": "^1.7.1",
     "vue": "^3.0.0",
     "vue-class-component": "^8.0.0-0",
     "vue-router": "^4.0.0-0",
+    "vuedraggable": "^4.0.3",
     "vuex": "^4.0.0-0",
     "vuex-router-sync": "^5.0.0"
   },
@@ -48,6 +50,9 @@
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-vue": "^7.0.0",
+    "jest-raw-loader": "^1.0.1",
+    "jest-serializer-vue": "^3.1.0",
+    "jest-transform-stub": "^2.0.0",
     "json-server": "^0.16.3",
     "jsonwebtoken": "^8.5.1",
     "less": "^3.9.0",
@@ -58,6 +63,7 @@
     "prettier": "^2.2.1",
     "sass-loader": "^8.0.2",
     "ts-import-plugin": "^1.6.7",
+    "ts-jest": "^29.1.0",
     "typescript": "~4.1.5",
     "vue-jest": "^5.0.0-0"
   }
