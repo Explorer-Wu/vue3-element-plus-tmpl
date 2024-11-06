@@ -1,5 +1,6 @@
 <template>
   <div class="page-box">
+    <el-button type="primary" class="v-fr" @click="$EventBus.$emit('showAdd', true)">新增</el-button>
     <TablePaging
       :loading="loading"
       :total="pageTotal"
@@ -11,6 +12,7 @@
       @pageChange="getTableDataFn"
     />
     <ModalDetail/>
+    <ModalAdd @update="getTableDataFn"/>
   </div>
 </template>
 
@@ -23,26 +25,29 @@
     computed,
     toRefs,
     toRaw,
+    markRaw,
     ref,
     getCurrentInstance
   } from 'vue';
   import TablePaging from '@/components/TablePaging/index.vue';
+  import ModalAdd from './modals/ModalAdd.vue';
   import ModalDetail from './modals/ModalDetail.vue';
+  import TableBtns from './modals/tableBtns';
 
   export default defineComponent({
     name: 'DealAlarm',
     components: {
       TablePaging,
-      ModalDetail
+      ModalAdd,
+      ModalDetail,
     },
     setup(props: any, context: any) {
       const { proxy } = getCurrentInstance() as any;
       const methods = {
-        handleEdit(index, row) {
-          console.log(index, row);
+        handleEdit(scope) {
+          console.log(scope.row);
         },
-        handleDelete(index, row) {
-          console.log(index, row);
+        handleDelete(scope) {
           proxy
             .confirm('确认删除该新闻?', '提示', {
               confirmButtonText: '确定',
@@ -51,7 +56,7 @@
               type: 'warning'
             })
             .then(() => {
-              // delRowFn(row.id)
+              // delRowFn(scope.row.id)
             })
             .catch(err => {
               throw new Error(err);
@@ -108,24 +113,33 @@
             title: '操作',
             key: 'action',
             width: 88,
-            btnGroup: [
-              {
-                size: 'mini',
-                text: '编辑',
-                fn: methods.handleEdit
-              },
-              {
-                size: 'mini',
-                type: 'danger',
-                text: '删除',
-                fn: methods.handleDelete
-              },
-              {
-                size: 'mini',
-                text: '详情',
-                fn: () => proxy.$EventBus.$emit('showDetail', true)
+            render: (scope) => {
+              const btnGroup = [
+                {
+                  size: 'mini',
+                  text: '编辑',
+                  fn: (scope) => methods.handleEdit(scope)
+                },
+                {
+                  size: 'mini',
+                  type: 'danger',
+                  text: '删除',
+                  fn: (scope) => methods.handleDelete(scope)
+                },
+                {
+                  size: 'mini',
+                  text: '详情',
+                  fn: () => proxy.$EventBus.$emit('showDetail', true)
+                }
+              ]
+              return {
+                childTemp: markRaw({
+                  temp: TableBtns,
+                  // scope: scope,
+                  extra: btnGroup
+                })
               }
-            ]
+            }
           }
         ]
       });

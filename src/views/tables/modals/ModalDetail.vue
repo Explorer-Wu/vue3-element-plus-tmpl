@@ -1,15 +1,15 @@
 <template>
-  <CustomModal :v-modal="isModal" @showModal="showModal" :modal-config="modalConfig">
+  <CustomModal v-modal:visible="isModal" :modal-config="modalConfig">
     <template #contents>
-      <el-form label-position="right" label-width="100px" :model="dataDetails">
+      <el-form label-position="right" label-width="100px" :model="detailState">
         <el-form-item label="名称">
-          {{ dataDetails.name }}
+          {{ detailState.name }}
         </el-form-item>
         <el-form-item label="区域">
-          {{ dataDetails.region }}
+          {{ detailState.region }}
         </el-form-item>
         <el-form-item label="形式">
-          {{ dataDetails.type }}
+          {{ detailState.type }}
         </el-form-item>
       </el-form>
     </template>
@@ -25,30 +25,25 @@
     components: {
       CustomModal
     },
-    // props: {
-    //   dataDetails: Object
-    // },
     setup(props: any, context: any) {
       const { proxy } = getCurrentInstance() as any;
+      const isModal = ref<boolean>(false);
 
       const detailState = reactive({
-        isModal: false,
-        modalConfig: {
+        name: 'wwh',
+        region: '杭州',
+        type: '不拘一格'
+      });
+      const modalConfig = reactive({
           title: "详情",
           isMid: true,
           isMask: true,
           isFull: false,
           width: 800,
-        },
-        dataDetails: {
-          name: 'wwh',
-          region: '杭州',
-          type: '不拘一格'
-        }
       });
 
       const showModal = (bol) => {
-        detailState.isModal = bol
+        isModal.value = bol;
       };
 
       onMounted(() => {
@@ -62,7 +57,9 @@
       });
 
       return {
-        ...toRefs(detailState),
+        detailState,
+        modalConfig,
+        isModal,
         showModal
       };
     },
